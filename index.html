@@ -1,1015 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedVR - Virtual Medical Learning Platform</title>
-    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/super-hands@3.2.4/dist/super-hands.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedVR - Virtual Medical Learning Platform</title>
 
-        html, body {
-            width: 100%;
-            height: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0e27;
-            color: #fff;
-            overflow: hidden;
-        }
+<!-- A-Frame -->
+<script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
 
-        a-scene {
-            width: 100%;
-            height: 100%;
-        }
+<!-- Super Hands -->
+<script src="https://cdn.jsdelivr.net/npm/super-hands@3.2.4/dist/super-hands.min.js"></script>
 
-        /* UI Overlay */
-        #ui-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            font-size: 14px;
-            z-index: 100;
-        }
+<!-- ✅ Joystick Controls -->
+<script src="https://cdn.jsdelivr.net/npm/aframe-joystick-controls@1.0.1/dist/aframe-joystick-controls.min.js"></script>
 
-        /* Main Menu */
-        #main-menu {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, #1a4d4d 0%, #0d3d3d 100%);
-            border: 3px solid #00b4b4;
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            z-index: 1000;
-            pointer-events: auto;
-            box-shadow: 0 0 50px rgba(0, 180, 180, 0.5);
-            min-width: 350px;
-        }
-
-        #main-menu h1 {
-            color: #00d4d4;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(0, 212, 212, 0.8);
-        }
-
-        #main-menu p {
-            color: #a0d4d4;
-            margin-bottom: 30px;
-            font-size: 0.95em;
-            line-height: 1.5;
-        }
-
-        .menu-button {
-            display: block;
-            width: 100%;
-            padding: 15px 25px;
-            margin: 10px 0;
-            background: linear-gradient(135deg, #0099cc 0%, #006699 100%);
-            color: white;
-            border: 2px solid #00ccff;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            pointer-events: auto;
-        }
-
-        .menu-button:hover {
-            background: linear-gradient(135deg, #00ccff 0%, #0099cc 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(0, 204, 255, 0.4);
-        }
-
-        .menu-button:active {
-            transform: translateY(-1px);
-        }
-
-        /* Scene UI */
-        #scene-ui {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(10, 14, 39, 0.9);
-            border: 2px solid #00b4b4;
-            border-radius: 8px;
-            padding: 20px;
-            max-width: 350px;
-            pointer-events: auto;
-            display: none;
-            backdrop-filter: blur(10px);
-        }
-
-        #scene-ui.visible {
-            display: block;
-        }
-
-        #scene-ui h2 {
-            color: #00d4d4;
-            font-size: 1.3em;
-            margin-bottom: 15px;
-        }
-
-        .info-box {
-            background: rgba(0, 99, 99, 0.7);
-            border-left: 4px solid #00d4d4;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-        }
-
-        .info-box.organ-info {
-            display: none;
-        }
-
-        .info-box.organ-info.active {
-            display: block;
-        }
-
-        .organ-name {
-            color: #00ff99;
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 8px;
-        }
-
-        .organ-description {
-            color: #a0d4d4;
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-
-        .organ-function {
-            color: #80c4d4;
-            font-size: 0.85em;
-            margin-top: 8px;
-            font-style: italic;
-        }
-
-        .instructions {
-            color: #a0d4d4;
-            font-size: 0.9em;
-            line-height: 1.5;
-            margin-top: 15px;
-        }
-
-        .back-button {
-            display: inline-block;
-            padding: 8px 16px;
-            background: #d9534f;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 15px;
-            pointer-events: auto;
-            transition: background 0.3s;
-        }
-
-        .back-button:hover {
-            background: #c9423f;
-        }
-
-        /* HUD Info */
-        #hud-info {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(10, 14, 39, 0.85);
-            border: 2px solid #00b4b4;
-            border-radius: 8px;
-            padding: 15px;
-            max-width: 400px;
-            pointer-events: auto;
-            font-size: 0.9em;
-            display: none;
-            backdrop-filter: blur(10px);
-        }
-
-        #hud-info.visible {
-            display: block;
-        }
-
-        /* Surgery UI */
-        #surgery-steps {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(10, 14, 39, 0.9);
-            border: 2px solid #ff8800;
-            border-radius: 8px;
-            padding: 20px;
-            max-width: 300px;
-            pointer-events: auto;
-            display: none;
-            backdrop-filter: blur(10px);
-        }
-
-        #surgery-steps.visible {
-            display: block;
-        }
-
-        #surgery-steps h2 {
-            color: #ffaa00;
-            font-size: 1.2em;
-            margin-bottom: 15px;
-        }
-
-        .step-item {
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 4px;
-            border-left: 4px solid #ffaa00;
-            background: rgba(255, 170, 0, 0.1);
-            color: #ffd699;
-            font-size: 0.9em;
-        }
-
-        .step-item.active {
-            background: rgba(255, 170, 0, 0.3);
-            border-left-color: #ffff00;
-            color: #ffff99;
-            font-weight: bold;
-        }
-
-        .step-item.completed {
-            background: rgba(0, 200, 0, 0.2);
-            border-left-color: #00ff00;
-            color: #80ff80;
-            text-decoration: line-through;
-        }
-
-        #feedback-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            font-size: 1.2em;
-            text-align: center;
-            border: 2px solid #00ff00;
-            pointer-events: none;
-            display: none;
-            z-index: 2000;
-        }
-
-        #feedback-message.correct {
-            display: block;
-            border-color: #00ff00;
-            color: #00ff00;
-            animation: feedbackPulse 0.5s ease;
-        }
-
-        #feedback-message.incorrect {
-            display: block;
-            border-color: #ff0000;
-            color: #ff6666;
-            animation: feedbackShake 0.4s ease;
-        }
-
-        @keyframes feedbackPulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.1); }
-        }
-
-        @keyframes feedbackShake {
-            0%, 100% { transform: translate(-50%, -50%) translateX(0); }
-            25% { transform: translate(-50%, -50%) translateX(-10px); }
-            75% { transform: translate(-50%, -50%) translateX(10px); }
-        }
-
-        /* Crosshair */
-        #crosshair {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 30px;
-            height: 30px;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 200;
-        }
-
-        .crosshair-line {
-            position: absolute;
-            background: rgba(0, 212, 212, 0.6);
-        }
-
-        .crosshair-h {
-            width: 15px;
-            height: 1px;
-            top: 50%;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .crosshair-v {
-            width: 1px;
-            height: 15px;
-            left: 50%;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .crosshair-dot {
-            width: 3px;
-            height: 3px;
-            background: #00d4d4;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-    </style>
+<style>
+body { margin:0; overflow:hidden; background:#0a0e27; }
+#main-menu {
+    position: fixed;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    background:#0d3d3d;
+    padding:30px;
+    border-radius:12px;
+    text-align:center;
+    z-index:1000;
+}
+.menu-button {
+    display:block;
+    margin:10px;
+    padding:12px;
+    background:#0099cc;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+</style>
 </head>
+
 <body>
-    <!-- Main VR Scene -->
-    <a-scene background="color: #0a0e27" fog="type: linear; color: #0a0e27; near: 0.1; far: 200" id="vr-scene">
-        <!-- Camera -->
-        <a-camera id="main-camera" position="0 1.6 0" look-controls wasd-controls>
-            <a-cursor id="cursor" raycaster="far: 100; objects: .interactive" 
-                      color="#00d4d4" 
-                      fuse="true" 
-                      fuse-timeout="1500"
-                      geometry="radiusInner: 0.02; radiusOuter: 0.03">
-            </a-cursor>
-        </a-camera>
 
-        <!-- ============ ANATOMY MODE SCENE ============ -->
-        <a-entity id="anatomy-scene" visible="false">
-            <!-- Lighting -->
-            <a-light type="ambient" intensity="0.6" color="#ffffff"></a-light>
-            <a-light type="directional" intensity="0.8" color="#ffffff" position="5 10 5"></a-light>
-            <a-light type="point" intensity="0.5" position="0 2 0" color="#00d4d4"></a-light>
+<!-- MENU -->
+<div id="main-menu">
+    <h1>🏥 MedVR</h1>
+    <button class="menu-button" onclick="startAnatomyMode()">📚 Learn Anatomy</button>
+    <button class="menu-button" onclick="startSurgeryMode()">🔬 Practice Surgery</button>
+</div>
 
-            <!-- Central platform -->
-            <a-cylinder id="platform" radius="3" height="0.1" color="#1a4d4d" position="0 0 -5" material="metalness: 0.6; roughness: 0.4;"></a-cylinder>
+<a-scene background="color: #0a0e27">
 
-            <!-- Human Body Model (simplified using primitives) -->
-            <a-entity id="body-model" position="0 0.5 -5">
-                <!-- Head -->
-                <a-sphere class="interactive organ-part" data-organ="brain" 
-                         id="organ-brain" 
-                         radius="0.25" 
-                         position="0 1.8 0" 
-                         color="#ff6b9d"
-                         material="metalness: 0.3; roughness: 0.7;"
-                         animation="property: rotation; from: 0 0 0; to: 0 360 0; dur: 8000; loop: true;">
-                </a-sphere>
+<!-- ✅ CAMERA WITH JOYSTICK -->
+<a-camera position="0 1.6 0"
+          look-controls
+          joystick-controls="mode: dynamic; maxDistance: 60; moveSpeed: 0.1">
 
-                <!-- Torso -->
-                <a-box class="organ-part" radius="0.4" height="1" depth="0.3" 
-                       position="0 0.8 0" 
-                       color="#4d7d7d"
-                       material="metalness: 0.2; roughness: 0.8;">
-                </a-box>
+    <a-cursor color="#00d4d4"></a-cursor>
+</a-camera>
 
-                <!-- Heart -->
-                <a-sphere class="interactive organ-part" data-organ="heart" 
-                         id="organ-heart" 
-                         radius="0.2" 
-                         position="0 1 -0.15" 
-                         color="#ff3366"
-                         material="metalness: 0.4; roughness: 0.6;"
-                         animation="property: scale; from: 1 1 1; to: 1.1 1.1 1.1; dur: 1000; loop: true; direction: alternate;">
-                </a-sphere>
+<!-- ============ ANATOMY ============ -->
+<a-entity id="anatomy-scene" visible="false">
 
-                <!-- Left Lung -->
-                <a-sphere class="interactive organ-part" data-organ="left-lung" 
-                         id="organ-left-lung" 
-                         radius="0.22" 
-                         position="-0.35 1 -0.1" 
-                         color="#66ccff"
-                         material="metalness: 0.3; roughness: 0.7;">
-                </a-sphere>
+<a-light type="ambient" intensity="0.7"></a-light>
 
-                <!-- Right Lung -->
-                <a-sphere class="interactive organ-part" data-organ="right-lung" 
-                         id="organ-right-lung" 
-                         radius="0.22" 
-                         position="0.35 1 -0.1" 
-                         color="#66ccff"
-                         material="metalness: 0.3; roughness: 0.7;">
-                </a-sphere>
+<a-entity position="0 0 -5">
 
-                <!-- Liver -->
-                <a-box class="interactive organ-part" data-organ="liver" 
-                       id="organ-liver" 
-                       width="0.35" height="0.3" depth="0.25" 
-                       position="0.3 0.7 -0.2" 
-                       color="#cc6633"
-                       material="metalness: 0.2; roughness: 0.8;">
-                </a-box>
+<a-sphere class="organ" id="brain" radius="0.3" position="0 2 0" color="#ff6b9d"></a-sphere>
 
-                <!-- Stomach -->
-                <a-sphere class="interactive organ-part" data-organ="stomach" 
-                         id="organ-stomach" 
-                         radius="0.18" 
-                         position="-0.15 0.6 -0.15" 
-                         color="#ff9933"
-                         material="metalness: 0.3; roughness: 0.7;">
-                </a-sphere>
+<a-sphere class="organ" id="heart" radius="0.25" position="0 1 0" color="#ff3366"
+animation="property: scale; to:1.2 1.2 1.2; dir:alternate; loop:true; dur:800">
+</a-sphere>
 
-                <!-- Kidneys (Left) -->
-                <a-sphere class="interactive organ-part" data-organ="left-kidney" 
-                         id="organ-left-kidney" 
-                         radius="0.15" 
-                         position="-0.4 0.5 -0.2" 
-                         color="#ff6699"
-                         material="metalness: 0.3; roughness: 0.7;">
-                </a-sphere>
+<a-sphere class="organ" id="left-lung" radius="0.25" position="-0.5 1 0" color="#66ccff"></a-sphere>
+<a-sphere class="organ" id="right-lung" radius="0.25" position="0.5 1 0" color="#66ccff"></a-sphere>
 
-                <!-- Kidneys (Right) -->
-                <a-sphere class="interactive organ-part" data-organ="right-kidney" 
-                         id="organ-right-kidney" 
-                         radius="0.15" 
-                         position="0.4 0.5 -0.2" 
-                         color="#ff6699"
-                         material="metalness: 0.3; roughness: 0.7;">
-                </a-sphere>
+<a-box class="organ" id="liver" position="0.4 0.5 0" depth="0.3" height="0.3" width="0.5" color="#cc6633"></a-box>
 
-                <!-- Spine -->
-                <a-cylinder class="organ-part" radius="0.05" height="1.2" 
-                           position="0 0.8 0.08" 
-                           color="#cccc99"
-                           material="metalness: 0.5; roughness: 0.5;">
-                </a-cylinder>
+</a-entity>
 
-                <!-- Left Arm -->
-                <a-box width="0.12" height="0.6" depth="0.1" position="-0.5 1 0" color="#4d7d7d"></a-box>
+<a-text value="Click organs" position="0 3 -5" align="center" color="#00ff99"></a-text>
 
-                <!-- Right Arm -->
-                <a-box width="0.12" height="0.6" depth="0.1" position="0.5 1 0" color="#4d7d7d"></a-box>
+</a-entity>
 
-                <!-- Left Leg -->
-                <a-box width="0.15" height="0.8" depth="0.12" position="-0.25 -0.2 0" color="#4d7d7d"></a-box>
+<!-- ============ SURGERY ============ -->
+<a-entity id="surgery-scene" visible="false">
 
-                <!-- Right Leg -->
-                <a-box width="0.15" height="0.8" depth="0.12" position="0.25 -0.2 0" color="#4d7d7d"></a-box>
-            </a-entity>
+<a-light type="ambient" intensity="0.7"></a-light>
 
-            <!-- Floating labels -->
-            <a-text id="label-click-organs" value="Click on organs to learn more" align="center" 
-                   position="0 2.5 -5" color="#00ff99" scale="1.2 1.2 1.2"></a-text>
+<a-plane rotation="-90 0 0" width="10" height="10" color="#2a3a4a"></a-plane>
 
-            <!-- Info panels around -->
-            <a-box position="4 0.5 -5" width="2.5" height="0.05" depth="3" color="#1a4d4d" material="transparent: true; opacity: 0.3;"></a-box>
-        </a-entity>
+<a-box position="0 1 -5" width="1.5" height="0.2" depth="2" color="#1a5a6a"></a-box>
 
-        <!-- ============ SURGERY MODE SCENE ============ -->
-        <a-entity id="surgery-scene" visible="false">
-            <!-- Lighting -->
-            <a-light type="ambient" intensity="0.7" color="#ffffff"></a-light>
-            <a-light type="directional" intensity="1" color="#ffff99" position="3 5 3"></a-light>
-            <a-light type="spot" intensity="0.8" position="0 3 0" color="#ff8800"></a-light>
+<a-box id="incision" position="0 1.2 -5" width="0.4" height="0.05" depth="1"
+color="#ff3333"></a-box>
 
-            <!-- Operating room floor -->
-            <a-plane position="0 0 -5" rotation="-90 0 0" width="15" height="15" color="#2a3a4a" 
-                     material="metalness: 0.1; roughness: 0.9;"></a-plane>
+</a-entity>
 
-            <!-- Operating table -->
-            <a-box id="operating-table" position="0 0.8 -5" width="1.5" height="0.2" depth="2.5" 
-                   color="#1a5a6a" material="metalness: 0.3; roughness: 0.7;"></a-box>
+<a-sky color="#0a0e27"></a-sky>
 
-            <!-- Simulated patient (stylized) -->
-            <a-entity id="surgical-patient" position="0 1.1 -5">
-                <a-box width="1.2" height="0.15" depth="2" color="#f0d0b8" material="roughness: 0.9;"></a-box>
-                <!-- Incision area highlight -->
-                <a-box id="incision-area" class="interactive" data-action="incision" 
-                       width="0.4" height="0.05" depth="0.8" 
-                       position="0 0.08 0" 
-                       color="#ff3333" 
-                       material="emissive: #ff6666; metalness: 0.2; roughness: 0.8;"
-                       scale="1 1 1"
-                       animation="property: scale; from: 1 1 1; to: 1.2 1 1.2; dur: 1000; loop: true; direction: alternate;">
-                </a-box>
-            </a-entity>
+</a-scene>
 
-            <!-- Tool selection area -->
-            <a-entity position="0 2 -5">
-                <!-- Scalpel tool -->
-                <a-cone id="tool-scalpel" class="interactive" data-action="select-scalpel" 
-                       position="-1.5 0 0" 
-                       radius-bottom="0.08" radius-top="0" height="0.4" 
-                       color="#888888" rotation="90 0 0"
-                       material="metalness: 0.9; roughness: 0.1;"
-                       animation="property: scale; from: 1 1 1; to: 1.15 1.15 1.15; dur: 1500; loop: true; direction: alternate;">
-                    <a-text value="Scalpel" position="0 0.3 0" align="center" scale="0.8 0.8 0.8" color="#00ff99"></a-text>
-                </a-cone>
+<script>
+const state = { mode:"menu" };
 
-                <!-- Retractor tool -->
-                <a-box id="tool-retractor" class="interactive" data-action="select-retractor" 
-                      position="0 0 0" 
-                      width="0.15" height="0.35" depth="0.1" 
-                      color="#aaaaaa"
-                      material="metalness: 0.7; roughness: 0.3;"
-                      animation="property: scale; from: 1 1 1; to: 1.15 1.15 1.15; dur: 1500; loop: true; direction: alternate;">
-                    <a-text value="Retractor" position="0 0.3 0" align="center" scale="0.8 0.8 0.8" color="#00ff99"></a-text>
-                </a-box>
+function startAnatomyMode(){
+    document.getElementById("main-menu").style.display="none";
+    document.getElementById("anatomy-scene").setAttribute("visible","true");
+    document.getElementById("surgery-scene").setAttribute("visible","false");
+    state.mode="anatomy";
+}
 
-                <!-- Clamp tool -->
-                <a-box id="tool-clamp" class="interactive" data-action="select-clamp" 
-                      position="1.5 0 0" 
-                      width="0.12" height="0.4" depth="0.08" 
-                      color="#ccccaa"
-                      material="metalness: 0.6; roughness: 0.4;"
-                      animation="property: scale; from: 1 1 1; to: 1.15 1.15 1.15; dur: 1500; loop: true; direction: alternate;">
-                    <a-text value="Clamp" position="0 0.3 0" align="center" scale="0.8 0.8 0.8" color="#00ff99"></a-text>
-                </a-box>
-            </a-entity>
+function startSurgeryMode(){
+    document.getElementById("main-menu").style.display="none";
+    document.getElementById("anatomy-scene").setAttribute("visible","false");
+    document.getElementById("surgery-scene").setAttribute("visible","true");
+    state.mode="surgery";
+}
 
-            <!-- Status board -->
-            <a-text id="surgery-status" value="Vitals: Normal | Temperature: 37°C | Blood Pressure: 120/80" 
-                   position="0 2.8 -5" align="center" color="#00ff99" scale="1 1 1"></a-text>
-        </a-entity>
+// Organ click
+document.querySelectorAll(".organ").forEach(el=>{
+    el.addEventListener("click",()=>{
+        alert("You clicked: "+el.id);
+    });
+});
+</script>
 
-        <!-- Background -->
-        <a-sky color="#0a0e27"></a-sky>
-    </a-scene>
-
-    <!-- UI Overlay -->
-    <div id="ui-overlay">
-        <!-- Main Menu -->
-        <div id="main-menu">
-            <h1>🏥 MedVR</h1>
-            <p>Virtual Medical Learning Platform</p>
-            <button class="menu-button" onclick="startAnatomyMode()">📚 Learn Anatomy</button>
-            <button class="menu-button" onclick="startSurgeryMode()">🔬 Practice Surgery</button>
-        </div>
-
-        <!-- Scene UI Panel -->
-        <div id="scene-ui">
-            <h2>📖 Anatomy Learning</h2>
-            <div class="instructions">
-                <strong>Instructions:</strong><br>
-                • Use mouse/WASD to move camera<br>
-                • Click on organs to learn about them<br>
-                • Watch the highlighted organ pulse<br>
-                <button class="back-button" onclick="backToMenu()">← Back to Menu</button>
-            </div>
-
-            <!-- Organ info boxes -->
-            <div class="info-box organ-info" data-organ="brain">
-                <div class="organ-name">🧠 Brain</div>
-                <div class="organ-description">The control center of the body, managing all thoughts, movements, and vital functions.</div>
-                <div class="organ-function"><strong>Key Functions:</strong> Cognition, coordination, memory, vital control</div>
-            </div>
-
-            <div class="info-box organ-info" data-organ="heart">
-                <div class="organ-name">❤️ Heart</div>
-                <div class="organ-description">A muscular organ that pumps blood throughout the body.</div>
-                <div class="organ-function"><strong>Key Functions:</strong> Circulation, oxygen transport, nutrient delivery</div>
-            </div>
-
-            <div class="info-box organ-info" data-organ="left-lung">
-                <div class="organ-name">💨 Left Lung</div>
-                <div class="organ-description">One of two respiratory organs that exchange oxygen and carbon dioxide with blood.</div>
-                <div class="organ-function"><strong>Key Functions:</strong> Gas exchange, oxygenation, respiration</div>
-            </div>
-
-            <div class="info-box organ-info" data-organ="right-lung">
-                <div class="organ-name">💨 Right Lung</div>
-                <div class="organ-description">One of two respiratory organs that exchange oxygen and carbon dioxide with blood.</div>
-                <div class="organ-function"><strong>Key Functions:</strong> Gas exchange, oxygenation, respiration</div>
-            </div>
-
-            <div class="info-box organ-info" data-organ="liver">
-                <div class="organ-name">🔴 Liver</div>
-                <div class="organ-description">The largest internal organ, responsible for detoxification and metabolism.</div>
-                <div class="organ-function"><strong>Key Functions:</strong> Detoxification, metabolism, bile production</div>
-            </div>
-
-            <div class="info-box organ-info" data-organ="stomach">
-                <div class="organ-name">🍽️ Stomach</div>
-                <div class="organ-description">A muscular organ that breaks down food and mixes it with digestive juices.</div>
-                <div class="organ-function"><strong>Key Functions:</strong> Digestion, food breakdown, nutrient processing</div>
-            </div>
-
-            <div class="info-box organ-info" data-organ="left-kidney">
-                <div class="organ-name">🫘 Left Kidney</div>
-                <div class="organ-description">One of two organs that filter waste from blood to produce urine.</div>
-                <div class="organ-function"><strong>Key Functions:</strong> Filtration, waste removal, fluid balance</div>
-            </div>
-
-            <div class="info-box organ-info" data-organ="right-kidney">
-                <div class="organ-name">🫘 Right Kidney</div>
-                <div class="organ-description">One of two organs that filter waste from blood to produce urine.</div>
-                <div class="organ-function"><strong>Key Functions:</strong> Filtration, waste removal, fluid balance</div>
-            </div>
-        </div>
-
-        <!-- HUD Info -->
-        <div id="hud-info">
-            <strong>Hint:</strong> <span id="hint-text">Hover over and click organs to learn about them!</span>
-        </div>
-
-        <!-- Surgery Steps Panel -->
-        <div id="surgery-steps">
-            <h2>⚕️ Surgical Procedure</h2>
-            <div class="step-item active" data-step="0">Step 1: Select Scalpel Tool</div>
-            <div class="step-item" data-step="1">Step 2: Make Initial Incision</div>
-            <div class="step-item" data-step="2">Step 3: Use Retractor to Open</div>
-            <div class="step-item" data-step="3">Step 4: Apply Hemostatic Clamps</div>
-            <div class="step-item" data-step="4">Step 5: Complete Procedure</div>
-            <button class="back-button" onclick="backToMenu()">← Back to Menu</button>
-        </div>
-
-        <!-- Feedback Message -->
-        <div id="feedback-message"></div>
-
-        <!-- Crosshair -->
-        <div id="crosshair">
-            <div class="crosshair-line crosshair-h"></div>
-            <div class="crosshair-line crosshair-v"></div>
-            <div class="crosshair-dot"></div>
-        </div>
-    </div>
-
-    <script>
-        // ============ STATE MANAGEMENT ============
-        const state = {
-            currentMode: 'menu', // menu, anatomy, surgery
-            selectedOrgan: null,
-            currentSurgeryStep: 0,
-            selectedTool: null,
-            surgeryCompleted: false,
-            stepCompleted: [false, false, false, false, false]
-        };
-
-        // ============ ORGAN DATABASE ============
-        const organDatabase = {
-            brain: {
-                name: '🧠 Brain',
-                description: 'The control center of the body, managing all thoughts, movements, and vital functions.',
-                function: 'Cognition, coordination, memory, vital control'
-            },
-            heart: {
-                name: '❤️ Heart',
-                description: 'A muscular organ that pumps blood throughout the body.',
-                function: 'Circulation, oxygen transport, nutrient delivery'
-            },
-            'left-lung': {
-                name: '💨 Left Lung',
-                description: 'One of two respiratory organs that exchange oxygen and carbon dioxide with blood.',
-                function: 'Gas exchange, oxygenation, respiration'
-            },
-            'right-lung': {
-                name: '💨 Right Lung',
-                description: 'One of two respiratory organs that exchange oxygen and carbon dioxide with blood.',
-                function: 'Gas exchange, oxygenation, respiration'
-            },
-            liver: {
-                name: '🔴 Liver',
-                description: 'The largest internal organ, responsible for detoxification and metabolism.',
-                function: 'Detoxification, metabolism, bile production'
-            },
-            stomach: {
-                name: '🍽️ Stomach',
-                description: 'A muscular organ that breaks down food and mixes it with digestive juices.',
-                function: 'Digestion, food breakdown, nutrient processing'
-            },
-            'left-kidney': {
-                name: '🫘 Left Kidney',
-                description: 'One of two organs that filter waste from blood to produce urine.',
-                function: 'Filtration, waste removal, fluid balance'
-            },
-            'right-kidney': {
-                name: '🫘 Right Kidney',
-                description: 'One of two organs that filter waste from blood to produce urine.',
-                function: 'Filtration, waste removal, fluid balance'
-            }
-        };
-
-        // ============ INITIALIZATION ============
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeScene();
-            setupOrganInteractions();
-            setupSurgeryInteractions();
-            updateHintText();
-        });
-
-        function initializeScene() {
-            // Show menu by default
-            showMenu();
-        }
-
-        // ============ MENU FUNCTIONS ============
-        function showMenu() {
-            document.getElementById('main-menu').style.display = 'block';
-            document.getElementById('scene-ui').classList.remove('visible');
-            document.getElementById('surgery-steps').classList.remove('visible');
-            document.getElementById('hud-info').classList.remove('visible');
-            state.currentMode = 'menu';
-        }
-
-        function hideMenu() {
-            document.getElementById('main-menu').style.display = 'none';
-        }
-
-        // ============ ANATOMY MODE ============
-        function startAnatomyMode() {
-            hideMenu();
-            state.currentMode = 'anatomy';
-            state.selectedOrgan = null;
-            
-            // Show anatomy scene, hide surgery scene
-            document.getElementById('anatomy-scene').setAttribute('visible', 'true');
-            document.getElementById('surgery-scene').setAttribute('visible', 'false');
-            
-            // Show UI elements
-            document.getElementById('scene-ui').classList.add('visible');
-            document.getElementById('hud-info').classList.add('visible');
-            
-            // Reset camera
-            resetCamera();
-            updateHintText();
-        }
-
-        function setupOrganInteractions() {
-            const organElements = document.querySelectorAll('.interactive.organ-part');
-            
-            organElements.forEach(organ => {
-                // Hover effects
-                organ.addEventListener('mouseenter', (e) => {
-                    if (state.currentMode === 'anatomy') {
-                        organ.setAttribute('material', 'emissive', '#00ff99');
-                        organ.setAttribute('scale', '1.15 1.15 1.15');
-                        const organId = organ.getAttribute('data-organ');
-                        if (organDatabase[organId]) {
-                            updateHintText(`Click to learn about: ${organDatabase[organId].name}`);
-                        }
-                    }
-                });
-                
-                organ.addEventListener('mouseleave', (e) => {
-                    if (state.currentMode === 'anatomy' && state.selectedOrgan !== organ.getAttribute('data-organ')) {
-                        organ.setAttribute('material', 'emissive', '#000000');
-                        organ.setAttribute('scale', '1 1 1');
-                    }
-                });
-                
-                // Click to select
-                organ.addEventListener('click', (e) => {
-                    if (state.currentMode === 'anatomy') {
-                        selectOrgan(organ.getAttribute('data-organ'), organ);
-                    }
-                });
-            });
-        }
-
-        function selectOrgan(organId, element) {
-            // Deselect previous organ
-            if (state.selectedOrgan) {
-                const prevElement = document.getElementById('organ-' + state.selectedOrgan);
-                if (prevElement) {
-                    prevElement.setAttribute('material', 'emissive', '#000000');
-                }
-                document.querySelectorAll('.info-box.organ-info.active').forEach(box => {
-                    box.classList.remove('active');
-                });
-            }
-            
-            // Select new organ
-            state.selectedOrgan = organId;
-            element.setAttribute('material', 'emissive', '#ffff00');
-            element.setAttribute('scale', '1.2 1.2 1.2');
-            
-            // Show organ info
-            const infoBox = document.querySelector(`.info-box.organ-info[data-organ="${organId}"]`);
-            if (infoBox) {
-                infoBox.classList.add('active');
-                playFeedback('correct');
-            }
-            
-            updateHintText(`Selected: ${organDatabase[organId].name} - Click another organ to learn more`);
-        }
-
-        function resetCamera() {
-            const camera = document.getElementById('main-camera');
-            camera.setAttribute('position', '0 1.6 0');
-        }
-
-        // ============ SURGERY MODE ============
-        function startSurgeryMode() {
-            hideMenu();
-            state.currentMode = 'surgery';
-            state.currentSurgeryStep = 0;
-            state.selectedTool = null;
-            state.surgeryCompleted = false;
-            state.stepCompleted = [false, false, false, false, false];
-            
-            // Show surgery scene, hide anatomy scene
-            document.getElementById('anatomy-scene').setAttribute('visible', 'false');
-            document.getElementById('surgery-scene').setAttribute('visible', 'true');
-            
-            // Show UI elements
-            document.getElementById('surgery-steps').classList.add('visible');
-            document.getElementById('hud-info').classList.add('visible');
-            
-            // Reset camera
-            resetCamera();
-            updateSurgeryStatus();
-        }
-
-        function setupSurgeryInteractions() {
-            // Tool selection
-            const tools = document.querySelectorAll('.interactive[data-action^="select-"]');
-            tools.forEach(tool => {
-                tool.addEventListener('click', (e) => {
-                    if (state.currentMode === 'surgery') {
-                        selectSurgeryTool(tool.getAttribute('data-action'));
-                    }
-                });
-            });
-            
-            // Incision area
-            const incisionArea = document.getElementById('incision-area');
-            if (incisionArea) {
-                incisionArea.addEventListener('click', (e) => {
-                    if (state.currentMode === 'surgery') {
-                        performSurgicalAction('incision');
-                    }
-                });
-            }
-        }
-
-        function selectSurgeryTool(action) {
-            const toolName = action.replace('select-', '');
-            
-            // Step 0: Select scalpel
-            if (state.currentSurgeryStep === 0 && toolName === 'scalpel') {
-                state.selectedTool = 'scalpel';
-                document.getElementById('tool-scalpel').setAttribute('material', 'emissive', '#ffff00');
-                playFeedback('correct');
-                completeStep(0);
-                moveToStep(1);
-                updateHintText('Good! Now make an incision. Click on the red area.');
-            } else if (state.currentSurgeryStep === 1 && toolName === 'scalpel') {
-                updateHintText('Click on the incision area to make the cut!');
-            } else {
-                playFeedback('incorrect');
-            }
-        }
-
-        function performSurgicalAction(action) {
-            if (action === 'incision' && state.selectedTool === 'scalpel' && state.currentSurgeryStep === 1) {
-                // Make incision
-                const incisionArea = document.getElementById('incision-area');
-                incisionArea.setAttribute('color', '#666666');
-                incisionArea.setAttribute('material', 'emissive', '#999999');
-                
-                playFeedback('correct');
-                completeStep(1);
-                moveToStep(2);
-                updateHintText('Great incision! Now select the retractor to open the cavity.');
-            } else if (state.currentSurgeryStep === 2 && state.selectedTool === 'retractor') {
-                playFeedback('correct');
-                completeStep(2);
-                moveToStep(3);
-                updateHintText('Cavity opened! Now select clamps to control bleeding.');
-            } else {
-                playFeedback('incorrect');
-            }
-        }
-
-        function moveToStep(stepNum) {
-            state.currentSurgeryStep = stepNum;
-            updateSurgerySteps();
-            updateSurgeryStatus();
-            
-            if (stepNum >= 4) {
-                completeSurgery();
-            }
-        }
-
-        function completeStep(stepNum) {
-            state.stepCompleted[stepNum] = true;
-            updateSurgerySteps();
-        }
-
-        function completeSurgery() {
-            state.surgeryCompleted = true;
-            playFeedback('correct');
-            updateHintText('🎉 Procedure completed successfully! Well done!');
-            setTimeout(() => {
-                if (confirm('Surgery practice completed! Return to menu?')) {
-                    backToMenu();
-                }
-            }, 2000);
-        }
-
-        function updateSurgerySteps() {
-            const steps = document.querySelectorAll('#surgery-steps .step-item');
-            steps.forEach(step => {
-                const stepNum = parseInt(step.getAttribute('data-step'));
-                step.classList.remove('active', 'completed');
-                
-                if (stepNum < state.currentSurgeryStep) {
-                    step.classList.add('completed');
-                } else if (stepNum === state.currentSurgeryStep) {
-                    step.classList.add('active');
-                }
-            });
-        }
-
-        function updateSurgeryStatus() {
-            const statusEl = document.getElementById('surgery-status');
-            const pressure = 120 - Math.random() * 5;
-            statusEl.setAttribute('value', `Vitals: Normal | Temperature: 37.0°C | BP: ${pressure.toFixed(0)}/80`);
-        }
-
-        // ============ FEEDBACK & UTILITIES ============
-        function playFeedback(type) {
-            const feedbackEl = document.getElementById('feedback-message');
-            feedbackEl.classList.remove('correct', 'incorrect');
-            
-            if (type === 'correct') {
-                feedbackEl.textContent = '✓ Correct!';
-                feedbackEl.classList.add('correct');
-            } else {
-                feedbackEl.textContent = '✗ Incorrect. Try again.';
-                feedbackEl.classList.add('incorrect');
-            }
-            
-            setTimeout(() => {
-                feedbackEl.classList.remove('correct', 'incorrect');
-            }, 1500);
-        }
-
-        function updateHintText(text = null) {
-            const hintEl = document.getElementById('hint-text');
-            if (text) {
-                hintEl.textContent = text;
-            } else {
-                if (state.currentMode === 'anatomy') {
-                    hintEl.textContent = 'Hover over and click organs to learn about them!';
-                } else if (state.currentMode === 'surgery') {
-                    hintEl.textContent = 'Follow the steps carefully. Select tools and perform actions!';
-                }
-            }
-        }
-
-        function backToMenu() {
-            // Deselect organ
-            if (state.selectedOrgan) {
-                const element = document.getElementById('organ-' + state.selectedOrgan);
-                if (element) {
-                    element.setAttribute('material', 'emissive', '#000000');
-                    element.setAttribute('scale', '1 1 1');
-                }
-                document.querySelectorAll('.info-box.organ-info.active').forEach(box => {
-                    box.classList.remove('active');
-                });
-            }
-            
-            // Reset tools
-            ['scalpel', 'retractor', 'clamp'].forEach(tool => {
-                const el = document.getElementById(`tool-${tool}`);
-                if (el) {
-                    el.setAttribute('material', 'emissive', '#000000');
-                }
-            });
-            
-            // Reset incision
-            const incisionArea = document.getElementById('incision-area');
-            if (incisionArea) {
-                incisionArea.setAttribute('color', '#ff3333');
-                incisionArea.setAttribute('material', 'emissive', '#ff6666');
-            }
-            
-            showMenu();
-        }
-
-        // ============ A-FRAME CLICK HANDLING ============
-        document.addEventListener('click', (e) => {
-            // Handle clicks on A-Frame entities
-            if (e.target.hasAttribute('data-organ') || e.target.hasAttribute('data-action')) {
-                // Let entity event handlers deal with it
-            }
-        });
-
-        // Update surgery status periodically
-        setInterval(() => {
-            if (state.currentMode === 'surgery') {
-                updateSurgeryStatus();
-            }
-        }, 3000);
-    </script>
 </body>
 </html>
